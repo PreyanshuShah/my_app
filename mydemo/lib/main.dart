@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mydemo/blocs/internet_bloc/internet_bloc.dart';
 import 'package:mydemo/screens/home.dart';
+// Import your other screen
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -17,9 +20,26 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Flutter Demo',
-      home: MyHomePage(title: 'Home'),
+    final client = Supabase.instance.client; // Get SupabaseClient instance
+
+    return BlocProvider(
+      create: (context) => InternetBloc(),
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: MyHomePage(
+          title: 'Home',
+          client: client, // Pass client to MyHomePage
+        ),
+        routes: {
+          '/home': (context) => MyHomePage(
+                title: 'Home',
+                client: client,
+              ),
+        },
+      ),
     );
   }
 }

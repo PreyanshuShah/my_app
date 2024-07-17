@@ -4,24 +4,33 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mydemo/models/price.dart';
 
 class SupabaseService {
-  final SupabaseClient _client = Supabase.instance.client;
+  final SupabaseClient _client;
+
+  SupabaseService() : _client = Supabase.instance.client;
 
   Future<List<Price>> fetchPrices() async {
-    final response = await _client.from('price').select().execute();
+    try {
+      final response = await _client.from('price').select().execute();
 
-    if (response.error != null) {
-      throw Exception(response.error!.message);
+      if (response.error != null) {
+        throw Exception(response.error!.message);
+      }
+
+      final List<dynamic> data = response.data as List<dynamic>;
+      return data.map((json) => Price.fromJson(json)).toList();
+    } catch (e) {
+      print('Error fetching prices: $e');
+      throw Exception('Error fetching prices: $e');
     }
-
-    final List<dynamic> data = response.data as List<dynamic>;
-    return data.map((json) => Price.fromJson(json)).toList();
   }
 
   Future<void> addPrice(String content, File? imageFile) async {
     try {
       String? imageUrl;
       if (imageFile != null) {
-        imageUrl = await uploadImage(imageFile);
+        final fileName =
+            '${basename(imageFile.path)}_${DateTime.now().millisecondsSinceEpoch}';
+        imageUrl = await uploadImage(imageFile, fileName);
       }
 
       final response = await _client
@@ -31,6 +40,8 @@ class SupabaseService {
       if (response.error != null) {
         throw Exception(response.error!.message);
       }
+
+      print('Price successfully added: $content, Image URL: $imageUrl');
     } catch (e) {
       print('Error adding price: $e');
       rethrow;
@@ -38,34 +49,38 @@ class SupabaseService {
   }
 
   Future<void> deletePrice(String id) async {
-    final response =
-        await _client.from('price').delete().eq('id', id).execute();
+    try {
+      final response =
+          await _client.from('price').delete().eq('id', id).execute();
 
-    if (response.error != null) {
-      throw Exception(response.error!.message);
+      if (response.error != null) {
+        throw Exception(response.error!.message);
+      }
+    } catch (e) {
+      print('Error deleting price: $e');
+      rethrow;
     }
   }
 
-  Future<String> uploadImage(File file) async {
-    final fileName = basename(file.path);
-    final response =
-        await _client.storage.from('images').upload(fileName, file);
+  Future<String> uploadImage(File file, String fileName) async {
+    try {
+      final storageResponse =
+          await _client.storage.from('images').upload(fileName, file);
 
-    if (response.error != null) {
-      throw Exception(response.error!.message);
+      if (storageResponse.error != null) {
+        throw Exception(storageResponse.error!.message);
+      }
+
+      final publicUrlResponse =
+          _client.storage.from('images').getPublicUrl(fileName);
+      if (publicUrlResponse.error != null) {
+        throw Exception(publicUrlResponse.error!.message);
+      }
+
+      return publicUrlResponse.data!;
+    } catch (e) {
+      print('Error uploading image: $e');
+      rethrow;
     }
-
-    return getPublicUrl(fileName);
-  }
-
-  Future<String> getPublicUrl(String fileName) async {
-    final urlResponse =
-        await _client.storage.from('images').getPublicUrl(fileName);
-
-    if (urlResponse.error != null) {
-      throw Exception(urlResponse.error!.message);
-    }
-
-    return urlResponse.data!;
   }
 }
