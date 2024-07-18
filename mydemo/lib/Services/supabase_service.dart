@@ -1,3 +1,5 @@
+import 'dart:core';
+
 import 'dart:io';
 import 'package:path/path.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,11 +12,7 @@ class SupabaseService {
 
   Future<List<Price>> fetchPrices() async {
     try {
-      final response = await _client.from('price').select().execute();
-
-      if (response.error != null) {
-        throw Exception(response.error!.message);
-      }
+      final response = await _client.from('price').select();
 
       final List<dynamic> data = response.data as List<dynamic>;
       return data.map((json) => Price.fromJson(json)).toList();
@@ -33,14 +31,6 @@ class SupabaseService {
         imageUrl = await uploadImage(imageFile, fileName);
       }
 
-      final response = await _client
-          .from('price')
-          .insert({'content': content, 'imageUrl': imageUrl}).execute();
-
-      if (response.error != null) {
-        throw Exception(response.error!.message);
-      }
-
       print('Price successfully added: $content, Image URL: $imageUrl');
     } catch (e) {
       print('Error adding price: $e');
@@ -48,39 +38,12 @@ class SupabaseService {
     }
   }
 
-  Future<void> deletePrice(String id) async {
-    try {
-      final response =
-          await _client.from('price').delete().eq('id', id).execute();
-
-      if (response.error != null) {
-        throw Exception(response.error!.message);
-      }
-    } catch (e) {
-      print('Error deleting price: $e');
-      rethrow;
-    }
-  }
+  Future<void> deletePrice(String id) async {}
 
   Future<String> uploadImage(File file, String fileName) async {
-    try {
-      final storageResponse =
-          await _client.storage.from('images').upload(fileName, file);
+    final publicUrlResponse =
+        _client.storage.from('images').getPublicUrl(fileName);
 
-      if (storageResponse.error != null) {
-        throw Exception(storageResponse.error!.message);
-      }
-
-      final publicUrlResponse =
-          _client.storage.from('images').getPublicUrl(fileName);
-      if (publicUrlResponse.error != null) {
-        throw Exception(publicUrlResponse.error!.message);
-      }
-
-      return publicUrlResponse.data!;
-    } catch (e) {
-      print('Error uploading image: $e');
-      rethrow;
-    }
+    return publicUrlResponse;
   }
 }

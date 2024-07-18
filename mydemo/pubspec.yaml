@@ -14,13 +14,10 @@ dependencies:
   flutter_bloc: ^8.1.6
   image_picker: ^0.8.4+1
   path: ^1.8.0
-  supabase_flutter: ^0.2.5
+  supabase_flutter: ^1.0.0
   google_sign_in: ^6.1.6
-
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
-
- 

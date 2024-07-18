@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mydemo/blocs/internet_bloc/internet_bloc.dart';
-import 'package:mydemo/screens/home.dart';
-// Import your other screen
+import 'package:mydemo/screens/Login.dart';
+import 'package:mydemo/screens/home.dart'; // Ensure this import matches the correct file path
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -29,14 +29,11 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: MyHomePage(
-          title: 'Home',
-          client: client, // Pass client to MyHomePage
-        ),
+        home: const LoginScreen(), // Set LoginScreen as the initial screen
         routes: {
           '/home': (context) => MyHomePage(
                 title: 'Home',
-                client: client,
+                client: client, // Pass client to MyHomePage
               ),
         },
       ),
